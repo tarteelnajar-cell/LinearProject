@@ -1,0 +1,332 @@
+import numpy as np
+
+# =========================
+# Input & Output Functions
+# =========================
+def input_matrix():
+    rows = int(input("Enter number of rows: "))
+    cols = int(input("Enter number of columns: "))
+    M = []
+    for i in range(rows):
+        row = []
+        for j in range(cols):
+            val = float(input(f"Enter element at position ({i},{j}): "))
+            row.append(val)
+        M.append(row)
+    return M
+
+def print_matrix(M):
+    for row in M:
+        print(row)
+    print()
+
+# =========================
+# Matrix Operations
+# =========================
+def add_matrices(A, B):
+    return [[A[i][j] + B[i][j] for j in range(len(A[0]))] for i in range(len(A))]
+
+def subtract_matrices(A, B):
+    return [[A[i][j] - B[i][j] for j in range(len(A[0]))] for i in range(len(A))]
+
+def multiply_matrix_by_number(A, num):
+    return [[A[i][j] * num for j in range(len(A[0]))] for i in range(len(A))]
+
+def multiply_matrices(A, B):
+    rowsA, colsA = len(A), len(A[0])
+    rowsB, colsB = len(B), len(B[0])
+    if colsA != rowsB:
+        print("Cannot multiply: cols(A) must equal rows(B).")
+        return None
+    result = []
+    for i in range(rowsA):
+        row = []
+        for j in range(colsB):
+            s = 0
+            for k in range(colsA):
+                s += A[i][k] * B[k][j]
+            row.append(s)
+        result.append(row)
+    return result
+
+# =========================
+# Determinant & Cramer's Rule
+# =========================
+def determinant(M):
+    rows, cols = len(M), len(M[0])
+    if rows != cols:
+        print("Error: determinant is only defined for square matrices.")
+        return None
+    if rows == 1:
+        return M[0][0]
+    if rows == 2:
+        return M[0][0]*M[1][1] - M[0][1]*M[1][0]
+    elif rows == 3:
+        return (M[0][0]*(M[1][1]*M[2][2] - M[1][2]*M[2][1])
+                - M[0][1]*(M[1][0]*M[2][2] - M[1][2]*M[2][0])
+                + M[0][2]*(M[1][0]*M[2][1] - M[1][1]*M[2][0]))
+    else:
+        return np.linalg.det(np.array(M))
+
+def cramer(A, b):
+    rows, cols = len(A), len(A[0])
+    if rows != cols:
+        print("Error: Cramer's rule only works for square matrices.")
+        return None
+    detA = determinant(A)
+    if detA == 0:
+        print("Error: det(A)=0 → No unique solution.")
+        return None
+    n = rows
+    solution = []
+    for i in range(n):
+        Ai = [row[:] for row in A]
+        for r in range(n):
+            Ai[r][i] = b[r]
+        xi = determinant(Ai) / detA
+        solution.append(xi)
+    return solution
+
+# =========================
+# REF & RREF
+# =========================
+def to_REF(A):
+    n, m = len(A), len(A[0])
+    M = [row[:] for row in A]
+    row = 0
+    for col in range(m):
+        if row >= n:
+            break
+        if M[row][col] == 0:
+            swap_row = row
+            for i in range(row + 1, n):
+                if M[i][col] != 0:
+                    swap_row = i
+                    break
+            if swap_row != row:
+                M[row], M[swap_row] = M[swap_row], M[row]
+            else:
+                continue
+        pivot = M[row][col]
+        for j in range(col, m):
+            M[row][j] /= pivot
+        for i in range(row + 1, n):
+            factor = M[i][col]
+            for j in range(col, m):
+                M[i][j] -= factor * M[row][j]
+        row += 1
+    return M
+
+def to_RREF(A):
+    n, m = len(A), len(A[0])
+    M = [row[:] for row in A]
+    row = 0
+    for col in range(m):
+        if row >= n:
+            break
+        if M[row][col] == 0:
+            swap_row = row
+            for i in range(row + 1, n):
+                if M[i][col] != 0:
+                    swap_row = i
+                    break
+            if swap_row != row:
+                M[row], M[swap_row] = M[swap_row], M[row]
+            else:
+                continue
+        pivot = M[row][col]
+        for j in range(col, m):
+            M[row][j] /= pivot
+        for i in range(row + 1, n):
+            factor = M[i][col]
+            for j in range(col, m):
+                M[i][j] -= factor * M[row][j]
+        for i in range(0, row):
+            factor = M[i][col]
+            for j in range(col, m):
+                M[i][j] -= factor * M[row][j]
+        row += 1
+    return M
+
+# =========================
+# Eigenvalues & Diagonalization
+# =========================
+def eigen_example(A):
+    values, vectors = np.linalg.eig(A)
+    print("Eigenvalues:", values)
+    print("Eigenvectors:\n", vectors)
+
+def diagonalization_example(A):
+    rows, cols = A.shape
+    if rows != cols:
+        print("Error: diagonalization requires a square matrix")
+        return
+    values, vectors = np.linalg.eig(A)
+    P = vectors
+    D = np.diag(values)
+    P_inv = np.linalg.inv(P)
+    print("P:\n", P)
+    print("D:\n", D)
+    print("P^-1:\n", P_inv)
+    print("Check A = P D P^-1:\n", P @ D @ P_inv)
+
+# =========================
+# Main Menu (Part A)
+# =========================
+def main_A():
+    while True:
+        print("\n=== MENU (Part A: Matrix Operations) ===")
+        print("1) REF")
+        print("2) RREF")
+        print("3) Add/Sub/Scalar/Multiply")
+        print("4) Determinant")
+        print("5) Cramer's Rule")
+        print("8) Eigenvalues/Eigenvectors")
+        print("9) Diagonalization")
+        print("0) Exit")
+
+        ch = input("Choice: ")
+        if ch == "0":
+            break
+
+        if ch in ["1","2","3","4","5","8","9"]:
+            A = np.array(input_matrix())
+
+        if ch == "1":
+            print("REF:")
+            print_matrix(to_REF(A.tolist()))
+
+        elif ch == "2":
+            print("RREF:")
+            print_matrix(to_RREF(A.tolist()))
+
+        elif ch == "3":
+            op = input("a=Add, b=Sub, c=Scalar, d=Mult: ")
+            if op == "a":
+                B = input_matrix()
+                print("A + B:")
+                print_matrix(add_matrices(A.tolist(), B))
+            elif op == "b":
+                B = input_matrix()
+                print("A - B:")
+                print_matrix(subtract_matrices(A.tolist(), B))
+            elif op == "c":
+                k = float(input("Scalar: "))
+                print("k * A:")
+                print_matrix(multiply_matrix_by_number(A.tolist(), k))
+            elif op == "d":
+                B = input_matrix()
+                print("A * B:")
+                print_matrix(multiply_matrices(A.tolist(), B))
+
+        elif ch == "4":
+            print("det(A) =", determinant(A.tolist()))
+
+        elif ch == "5":
+            b = list(map(float, input("Vector b (space separated): ").split()))
+            print("Solution:", cramer(A.tolist(), b))
+
+        elif ch == "8":
+            print("Eigenvalues/Eigenvectors:")
+            eigen_example(A)
+
+        elif ch == "9":
+            print("Diagonalization:")
+            diagonalization_example(A)
+
+        else:
+            print("Invalid choice. Please select from the menu.")
+
+# =========================
+# Part B: Differential Equations
+# =========================
+
+
+from sympy import symbols, Function, Eq, dsolve, classify_ode, ode_order
+
+def ode_solver():
+    x = symbols('x')
+    y = Function('y')
+
+    print("\n=== Differential Equation Solver ===")
+    expr_str = input("Enter your differential equation : ")
+
+    ode = Eq(eval(expr_str), 0)
+    order = ode_order(ode, y(x))
+    methods = classify_ode(ode)
+
+    print("Order:", order)
+    # =========================
+    # Second-order with constant coefficients
+    # =========================
+    if order == 2:
+        coeffs_y2 = ode.lhs.coeff(y(x).diff(x,2))
+        coeffs_y1 = ode.lhs.coeff(y(x).diff(x,1))
+        coeffs_y0 = ode.lhs.coeff(y(x))
+        for c in [coeffs_y2, coeffs_y1, coeffs_y0]:
+            if not c.is_constant():
+                print("Error: Coefficients must be constants.")
+                return
+        print("Type: Second-order linear ODE with constant coefficients")
+        ans = input("Do you want to enter initial conditions? (yes/no): ").strip().lower()
+        if ans == "yes":
+            x0 = float(input("Enter x0: "))
+            y0 = float(input("Enter y(x0): "))
+            yp0 = float(input("Enter y'(x0): "))
+            sol = dsolve(ode, y(x), ics={y(x0): y0, y(x).diff(x).subs(x, x0): yp0})
+        else:
+            sol = dsolve(ode, y(x))
+    # =========================
+    # First-order separable ODE
+    # =========================
+    
+    
+    elif order == 1 and "separable" in methods:
+        print("Type: First-order separable ODE")
+        ans = input("Do you want to enter an initial condition? (yes/no): ").strip().lower()
+        if ans == "yes":
+            x0 = float(input("Enter x0: "))
+            y0 = float(input("Enter y(x0): "))
+            sol = dsolve(ode, y(x), ics={y(x0): y0})
+        else:
+            sol = dsolve(ode, y(x))
+
+    # First-order linear ODE
+    elif order == 1 and ode.lhs.is_linear(y(x)):
+        print("Type: First-order linear ODE")
+        ans = input("Do you want to enter an initial condition? (yes/no): ").strip().lower()
+        if ans == "yes":
+            x0 = float(input("Enter x0: "))
+            y0 = float(input("Enter y(x0): "))
+            sol = dsolve(ode, y(x), ics={y(x0): y0})
+        else:
+            sol = dsolve(ode, y(x))
+
+    else:
+        print("Error: Unsupported equation type (only first or second order supported).")
+        return
+
+    print("\n--- Result ---")
+    print("Equation (input form):", expr_str)
+    print("Solution:", f"y(x) = {sol.rhs}")
+
+   # =========================
+   # Main Menu (Part B)
+   # =========================
+def main_B():
+    while True:
+        print("\n=== MENU (Part B: Differential Equations) ===")
+        print("1) Solve a differential equation")
+        print("0) Exit")
+
+        ch = input("Choice: ")
+        if ch == "0":
+            print("Program finished.")
+            break
+        elif ch == "1":
+            ode_solver()
+        else:
+            print("Invalid choice. Please select from the menu.")
+
+if __name__ == "__main__":
+    main_B()
