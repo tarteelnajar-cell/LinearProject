@@ -1,3 +1,4 @@
+تريتل نبيل نجار
 import numpy as np
 
 # =========================
@@ -329,4 +330,5 @@ def main_B():
             print("Invalid choice. Please select from the menu.")
 
 if __name__ == "__main__":
+
     main_B()
